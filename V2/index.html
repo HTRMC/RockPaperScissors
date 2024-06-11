@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steen Papier Schaar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .fade-in {
+            animation: fadeIn 1s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-in-fast {
+            animation: fadeIn 0.5s ease-in;
+        }
+        img.choice {
+            margin: 5px;
+            max-width: 150px;  /* Max grootte van de afbeeldingen */
+            max-height: 150px;
+            cursor: pointer;
+            transition: transform 0.3s;
+            border-radius: 10px;  /* Ronde hoeken */
+            filter: drop-shadow(5px 5px 0px #0b253d);
+        }
+        img.choice:hover {
+            transform: scale(1.1);
+        }
+        #settings-menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        #settings-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #settings-window {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            width: 300px;  /* Verhoog de breedte van het instellingenvenster */
+            max-width: 90%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .settings-options {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+        .settings-options label {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        .close-settings {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+        }
+        #result, #score, #streak, #round {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #score, #streak, #round {
+            margin-top: 10px;
+        }
+        #player2-choice {
+            display: none;
+        }
+        #game-section {
+            display: none;
+        }
+        .game-mode-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .game-mode-buttons button {
+            margin: 0 5px;
+            padding: 16px 31px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-shadow: 0px 2px 0px #2f6627;
+            border-radius: 10px;
+            border: 5px solid #1c6ea4;
+            color: #ffffff;
+            font-family: Arial;
+            background-color: #1e90ff;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .game-mode-buttons button.selected {
+            background-color: #00509e; /* Darker blue */
+        }
+        .game-mode-buttons button:hover {
+            background-color: #63a4ff;
+        }
+        .game-mode-buttons button:active {
+            position: relative;
+            top: 1px;
+        }
+        #start-button {
+            display: block;
+            margin: 10px auto;
+            padding: 16px 31px;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-shadow: 0px 2px 0px #2f6627;
+            border-radius: 10px;
+            border: 5px solid #18ab29;
+            color: #ffffff;
+            font-family: Arial;
+            background-color: #44c767;
+            display: inline-block;
+            width: calc(2 * (150px + 22px)); /* Width of two game mode buttons plus margins */
+        }
+        #start-button:hover {
+            background-color: #5cbf2a;
+        }
+        #start-button:active {
+            position: relative;
+            top: 1px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="fade-in">Steen Papier Schaar</h1>
+    <div class="fade-in" id="initial-section">
+        <label for="player-name">Voer je naam in:</label>
+        <input type="text" id="player-name" placeholder="Je naam" required>
+        <div class="game-mode-buttons">
+            <button id="single-player-button" onclick="setGameMode('single')">Singleplayer</button>
+            <button id="multi-player-button" onclick="setGameMode('multi')">Multiplayer</button>
+        </div>
+        <button id="start-button" onclick="startGame()">Start Spel</button>
+    </div>
+    <div id="settings-menu">
+        <button onclick="openSettings()">⚙️ Instellingen</button>
+    </div>
+    <div id="settings-overlay">
+        <div id="settings-window">
+            <span class="close-settings" onclick="closeSettings()">✖</span>
+            <div class="settings-options">
+                <label><input type="checkbox" id="toggle-result" checked> Toon Uitslag</label>
+                <label><input type="checkbox" id="toggle-score" checked> Toon Score</label>
+                <label><input type="checkbox" id="toggle-streak" checked> Toon Streak</label>
+                <label><input type="checkbox" id="toggle-round" checked> Toon Ronde</label>
+            </div>
+        </div>
+    </div>
+    <div id="game-section" class="fade-in-fast">
+        <div id="player1-choice">
+            <h2 id="player1-prompt">Speler 1, maak een keuze:</h2>
+            <img src="Rock.png" class="choice" data-choice="steen" alt="Steen">
+            <img src="Paper.png" class="choice" data-choice="papier" alt="Papier">
+            <img src="Scissors.png" class="choice" data-choice="schaar" alt="Schaar">
+        </div>
+        <div id="player2-choice">
+            <h2>Speler 2, maak een keuze:</h2>
+            <img src="Rock.png" class="choice" data-choice="steen" alt="Steen">
+            <img src="Paper.png" class="choice" data-choice="papier" alt="Papier">
+            <img src="Scissors.png" class="choice" data-choice="schaar" alt="Schaar">
+        </div>
+        <div id="result">Resultaat:</div>
+        <div id="score">Score: 0</div>
+        <div id="streak">Streak: 0</div>
+        <div id="round">Ronde: 1</div>
+    </div>
+
+    <script>
+        let gameMode = 'single'; // Default game mode is single player
+        let player1Choice = '';
+        let player2Choice = '';
+        let playerScore = 0;
+        let playerStreak = 0;
+        let roundCount = 1;
+        let lastWinner = null;
+        let playerName = 'Speler';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const choices = ['steen', 'papier', 'schaar'];
+            const buttons = document.querySelectorAll('.choice, #settings-menu button, .game-mode-buttons button');
+            const resultDiv = document.getElementById('result');
+            const scoreDiv = document.getElementById('score');
+            const streakDiv = document.getElementById('streak');
+            const roundDiv = document.getElementById('round');
+            const player1ChoiceDiv = document.getElementById('player1-choice');
+            const player2ChoiceDiv = document.getElementById('player2-choice');
+            const player1Prompt = document.getElementById('player1-prompt');
+            const toggleResultCheckbox = document.getElementById('toggle-result');
+            const toggleScoreCheckbox = document.getElementById('toggle-score');
+            const toggleStreakCheckbox = document.getElementById('toggle-streak');
+            const toggleRoundCheckbox = document.getElementById('toggle-round');
+            const settingsOverlay = document.getElementById('settings-overlay');
+            const singlePlayerButton = document.getElementById('single-player-button');
+            const multiPlayerButton = document.getElementById('multi-player-button');
+
+            const hoverSound = new Audio('hover.ogg');
+
+            buttons.forEach(button => {
+                button.addEventListener('mouseover', () => {
+                    hoverSound.play();
+                });
+            });
+
+            function updateVisibility() {
+                resultDiv.style.display = toggleResultCheckbox.checked ? 'block' : 'none';
+                scoreDiv.style.display = toggleScoreCheckbox.checked ? 'block' : 'none';
+                streakDiv.style.display = toggleStreakCheckbox.checked ? 'block' : 'none';
+                roundDiv.style.display = toggleRoundCheckbox.checked ? 'block' : 'none';
+            }
+
+            function updateScore() {
+                scoreDiv.innerText = `Score: ${playerScore}`;
+                scoreDiv.classList.add('fade-in');
+            }
+
+            function updateStreak() {
+                streakDiv.innerText = `Streak: ${playerStreak}`;
+                streakDiv.classList.add('fade-in');
+            }
+
+            function updateRound() {
+                roundDiv.innerText = `Ronde: ${roundCount}`;
+                roundDiv.classList.add('fade-in');
+            }
+
+            function determineWinner(player1, player2) {
+                if (player1 === player2) {
+                    return 'Gelijkspel!';
+                } else if (
+                    (player1 === 'steen' && player2 === 'schaar') ||
+                    (player1 === 'papier' && player2 === 'steen') ||
+                    (player1 === 'schaar' && player2 === 'papier')
+                ) {
+                    return 'player1';
+                } else {
+                    return 'player2';
+                }
+            }
+
+            function handlePlayerChoice(playerChoice) {
+                if (gameMode === 'single') {
+                    const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+                    let result = determineWinner(playerChoice, computerChoice);
+
+                    if (result === 'Gelijkspel!') {
+                        resultDiv.innerText = result;
+                    } else if (result === 'player1') {
+                        resultDiv.innerText = `${playerName} wint! ${playerChoice} verslaat ${computerChoice}`;
+                        playerScore++;
+                        if (lastWinner === 'player') {
+                            playerStreak++;
+                        } else {
+                            playerStreak = 1;
+                        }
+                        lastWinner = 'player';
+                    } else {
+                        resultDiv.innerText = `Computer wint! ${computerChoice} verslaat ${playerChoice}`;
+                        playerStreak = 0; // Reset streak on loss
+                        lastWinner = 'computer';
+                    }
+
+                    resultDiv.classList.add('fade-in');
+                    updateScore();
+                    updateStreak();
+                } else if (gameMode === 'multi') {
+                    if (!player1Choice) {
+                        player1Choice = playerChoice;
+                        player1ChoiceDiv.style.display = 'none';
+                        player2ChoiceDiv.style.display = 'block';
+                    } else {
+                        player2Choice = playerChoice;
+                        player2ChoiceDiv.style.display = 'none';
+                        let result = determineWinner(player1Choice, player2Choice);
+
+                        if (result === 'Gelijkspel!') {
+                            resultDiv.innerText = result;
+                        } else if (result === 'player1') {
+                            resultDiv.innerText = `${playerName} wint! ${player1Choice} verslaat ${player2Choice}`;
+                            playerScore++;
+                            if (lastWinner === 'player') {
+                                playerStreak++;
+                            } else {
+                                playerStreak = 1;
+                            }
+                            lastWinner = 'player';
+                        } else {
+                            resultDiv.innerText = `Speler 2 wint! ${player2Choice} verslaat ${player1Choice}`;
+                            playerStreak = 0; // Reset streak on loss
+                            lastWinner = 'player2';
+                        }
+
+                        resultDiv.classList.add('fade-in');
+                        player1Choice = '';
+                        player2Choice = '';
+                        player1ChoiceDiv.style.display = 'block';
+                        player2ChoiceDiv.style.display = 'none';
+
+                        updateScore();
+                        updateStreak();
+                    }
+                }
+                roundCount++;
+                updateRound();
+            }
+
+            buttons.forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const playerChoice = event.target.getAttribute('data-choice');
+                    handlePlayerChoice(playerChoice);
+                });
+            });
+
+            toggleResultCheckbox.addEventListener('change', updateVisibility);
+            toggleScoreCheckbox.addEventListener('change', updateVisibility);
+            toggleStreakCheckbox.addEventListener('change', updateVisibility);
+            toggleRoundCheckbox.addEventListener('change', updateVisibility);
+
+            updateVisibility();
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeSettings();
+                }
+            });
+
+            settingsOverlay.addEventListener('click', (event) => {
+                if (event.target === settingsOverlay) {
+                    closeSettings();
+                }
+            });
+        });
+
+        function openSettings() {
+            document.getElementById('settings-overlay').style.display = 'flex';
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-overlay').style.display = 'none';
+        }
+
+        function startGame() {
+            const playerNameInput = document.getElementById('player-name');
+            playerName = playerNameInput.value.trim();
+            if (playerName === '') {
+                alert('Voer een naam in.');
+                return;
+            }
+
+            document.getElementById('initial-section').style.display = 'none';
+            document.getElementById('game-section').style.display = 'block';
+            document.getElementById('player1-prompt').innerText = `${playerName}, maak een keuze:`;
+            resetScoresAndStreaks();
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('result').innerText = '';
+            roundCount = 1;
+            updateRound();
+            const singlePlayerButton = document.getElementById('single-player-button');
+            const multiPlayerButton = document.getElementById('multi-player-button');
+            if (mode === 'single') {
+                singlePlayerButton.classList.add('selected');
+                singlePlayerButton.style.backgroundColor = '#00509e';
+                multiPlayerButton.classList.remove('selected');
+                multiPlayerButton.style.backgroundColor = '#1e90ff';
+                document.getElementById('player1-choice').style.display = 'block';
+                document.getElementById('player2-choice').style.display = 'none';
+                resetScoresAndStreaks();
+            } else {
+                multiPlayerButton.classList.add('selected');
+                multiPlayerButton.style.backgroundColor = '#00509e';
+                singlePlayerButton.classList.remove('selected');
+                singlePlayerButton.style.backgroundColor = '#1e90ff';
+                document.getElementById('player1-choice').style.display = 'block';
+                document.getElementById('player2-choice').style.display = 'none';
+                resetScoresAndStreaks();
+            }
+        }
+
+        function resetScoresAndStreaks() {
+            playerScore = 0;
+            playerStreak = 0;
+            lastWinner = null;
+            updateScore();
+            updateStreak();
+        }
+    </script>
+</body>
+</html>
