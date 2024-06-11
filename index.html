@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steen Papier Schaar</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Steen Papier Schaar</h1>
+    
+    <button onclick="playGame('steen')">Steen</button>
+    <button onclick="playGame('papier')">Papier</button>
+    <button onclick="playGame('schaar')">Schaar</button>
+
+    <div id="result"></div>
+
+    <script>
+        function playGame(playerChoice) {
+            const choices = ['steen', 'papier', 'schaar'];
+            
+            const getComputerChoice = () => {
+                return choices[Math.floor(Math.random() * choices.length)];
+            };
+
+            const computerChoice = getComputerChoice();
+            let result = '';
+
+            // Determine the result
+            switch (playerChoice) {
+                case computerChoice:
+                    result = 'Gelijkspel!';
+                    break;
+                case 'steen':
+                    result = (computerChoice === 'schaar') ? 
+                            `Jij wint! ${playerChoice} verslaat ${computerChoice}` : 
+                            `Computer wint! ${computerChoice} verslaat ${playerChoice}`;
+                    break;
+                case 'papier':
+                    result = (computerChoice === 'steen') ? 
+                            `Jij wint! ${playerChoice} verslaat ${computerChoice}` : 
+                            `Computer wint! ${computerChoice} verslaat ${playerChoice}`;
+                    break;
+                case 'schaar':
+                    result = (computerChoice === 'papier') ? 
+                            `Jij wint! ${playerChoice} verslaat ${computerChoice}` : 
+                            `Computer wint! ${computerChoice} verslaat ${playerChoice}`;
+                    break;
+                default:
+                    result = 'Ongeldige keuze!';
+                    break;
+            }
+
+            document.getElementById('result').innerText = result;
+        }
+    </script>
+</body>
+</html>
